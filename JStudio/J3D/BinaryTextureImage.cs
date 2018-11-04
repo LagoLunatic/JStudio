@@ -39,8 +39,8 @@ namespace JStudio
             RGB5A3 = 0x05,  // 16 | 4 | 4 | 32 | color + alpha
             RGBA32 = 0x06,  // 32 | 4 | 4 | 64 | color + alpha
             C4 = 0x08,      //  4 | 8 | 8 | 32 | palette choices (IA8, RGB565, RGB5A3)
-            C8 = 0x09,      // 8, 8, 4, 32 | palette choices (IA8, RGB565, RGB5A3)
-            C14X2 = 0x0a,   // 16 (14 used) | 4 | 4 | 32 | palette (IA8, RGB565, RGB5A3)
+            C8 = 0x09,      //  8 | 8 | 4 | 32 | palette choices (IA8, RGB565, RGB5A3)
+            C14X2 = 0x0a,   // 16 | 4 | 4 | 32 | palette (IA8, RGB565, RGB5A3) NOTE: only 14 bits are used per pixel
             CMPR = 0x0e,    //  4 | 8 | 8 | 32 | mini palettes in each block, RGB565 or transparent.
         }
 
@@ -117,18 +117,25 @@ namespace JStudio
         public ushort Height { get; private set; }
         public WrapModes WrapS { get; private set; }
         public WrapModes WrapT { get; private set; }
+
+        public bool PalettesEnabled { get; private set; }
         public PaletteFormats PaletteFormat { get; private set; }
         public ushort PaletteCount { get; private set; }
+
         public WLinearColor BorderColor { get; private set; } // This is a guess. It seems to be 0 in most things, but it fits with min/mag filters.
+
         public FilterMode MinFilter { get; private set; }
         public FilterMode MagFilter { get; private set; }
-        public byte MinLOD { get; private set; } // Fixed point number, 1/8 = conversion (ToDo: is this multiply by 8 or divide...)
-        public byte MagLOD { get; private set; } // Fixed point number, 1/8 = conversion (ToDo: is this multiply by 8 or divide...)
+        public sbyte MinLOD { get; private set; } // Fixed point number, 1/8 = conversion (ToDo: is this multiply by 8 or divide...)
+        public sbyte MagLOD { get; private set; } // Fixed point number, 1/8 = conversion (ToDo: is this multiply by 8 or divide...)
         public byte MipMapCount { get; private set; }
-        public ushort LodBias { get; private set; } // Fixed point number, 1/100 = conversion
+        public short LodBias { get; private set; } // Fixed point number, 1/100 = conversion
 
         private Palette m_imagePalette;
         private byte[] m_rgbaImageData;
+
+        public short unknown2 = 0;
+        public byte unknown3 = 0;
 
         // headerStart seems to be chunkStart + 0x20 and I don't know why.
         /// <summary>
@@ -145,17 +152,17 @@ namespace JStudio
             Height = stream.ReadUInt16();
             WrapS = (WrapModes)stream.ReadByte();
             WrapT = (WrapModes)stream.ReadByte();
-            byte unknown1 = stream.ReadByte();
+            PalettesEnabled = Convert.ToBoolean(stream.ReadByte());
             PaletteFormat = (PaletteFormats)stream.ReadByte();
             PaletteCount = stream.ReadUInt16();
             int paletteDataOffset = stream.ReadInt32();
             BorderColor = new WLinearColor(stream.ReadByte() / 255f, stream.ReadByte() / 255f, stream.ReadByte() / 255f, stream.ReadByte() / 255f);
             MinFilter = (FilterMode)stream.ReadByte();
             MagFilter = (FilterMode)stream.ReadByte();
-            short unknown2 = stream.ReadInt16();
+            unknown2 = stream.ReadInt16();
             MipMapCount = stream.ReadByte();
-            byte unknown3 = stream.ReadByte();
-            LodBias = stream.ReadUInt16();
+            unknown3 = stream.ReadByte();
+            LodBias = stream.ReadInt16();
 
             int imageDataOffset = stream.ReadInt32();
 
@@ -263,8 +270,8 @@ namespace JStudio
 
         private static byte[] DecodeRgba32(EndianBinaryReader stream, uint width, uint height)
         {
-            uint numBlocksW = width / 4; //4 byte block width
-            uint numBlocksH = height / 4; //4 byte block height 
+            uint numBlocksW = (width + 3) / 4; //4 byte block width
+            uint numBlocksH = (height + 3) / 4; //4 byte block height 
 
             byte[] decodedData = new byte[width * height * 4];
 
@@ -279,7 +286,11 @@ namespace JStudio
                         {
                             //Ensure the pixel we're checking is within bounds of the image.
                             if ((xBlock * 4 + pX >= width) || (yBlock * 4 + pY >= height))
+                            {
+                                stream.SkipByte();
+                                stream.SkipByte();
                                 continue;
+                            }
 
                             //Now we're looping through each pixel in a block, but a pixel is four bytes long. 
                             uint destIndex = (uint)(4 * (width * ((yBlock * 4) + pY) + (xBlock * 4) + pX));
@@ -295,7 +306,11 @@ namespace JStudio
                         {
                             //Ensure the pixel we're checking is within bounds of the image.
                             if ((xBlock * 4 + pX >= width) || (yBlock * 4 + pY >= height))
+                            {
+                                stream.SkipByte();
+                                stream.SkipByte();
                                 continue;
+                            }
 
                             //Now we're looping through each pixel in a block, but a pixel is four bytes long. 
                             uint destIndex = (uint)(4 * (width * ((yBlock * 4) + pY) + (xBlock * 4) + pX));
@@ -313,8 +328,8 @@ namespace JStudio
         private static byte[] DecodeC4(EndianBinaryReader stream, uint width, uint height, Palette imagePalette, PaletteFormats paletteFormat)
         {
             //4 bpp, 8 block width/height, block size 32 bytes, possible palettes (IA8, RGB565, RGB5A3)
-            uint numBlocksW = width / 8;
-            uint numBlocksH = height / 8;
+            uint numBlocksW = (width + 7) / 8;
+            uint numBlocksH = (height + 7) / 8;
 
             byte[] decodedData = new byte[width * height * 8];
 
@@ -330,7 +345,10 @@ namespace JStudio
                         {
                             //Ensure we're not reading past the end of the image.
                             if ((xBlock * 8 + pX >= width) || (yBlock * 8 + pY >= height))
+                            {
+                                stream.SkipByte();
                                 continue;
+                            }
 
                             byte data = stream.ReadByte();
                             byte t = (byte)(data & 0xF0);
@@ -363,8 +381,8 @@ namespace JStudio
         private static byte[] DecodeC8(EndianBinaryReader stream, uint width, uint height, Palette imagePalette, PaletteFormats paletteFormat)
         {
             //4 bpp, 8 block width/4 block height, block size 32 bytes, possible palettes (IA8, RGB565, RGB5A3)
-            uint numBlocksW = width / 8;
-            uint numBlocksH = height / 4;
+            uint numBlocksW = (width + 7) / 8;
+            uint numBlocksH = (height + 3) / 4;
 
             byte[] decodedData = new byte[width * height * 8];
 
@@ -380,8 +398,10 @@ namespace JStudio
                         {
                             //Ensure we're not reading past the end of the image.
                             if ((xBlock * 8 + pX >= width) || (yBlock * 4 + pY >= height))
+                            {
+                                stream.SkipByte();
                                 continue;
-
+                            }
 
                             byte data = stream.ReadByte();
                             decodedData[width * ((yBlock * 4) + pY) + (xBlock * 8) + pX] = data;
@@ -410,8 +430,8 @@ namespace JStudio
         private static byte[] DecodeRgb565(EndianBinaryReader stream, uint width, uint height)
         {
             //16 bpp, 4 block width/height, block size 32 bytes, color.
-            uint numBlocksW = width / 4;
-            uint numBlocksH = height / 4;
+            uint numBlocksW = (width + 3) / 4;
+            uint numBlocksH = (height + 3) / 4;
 
             byte[] decodedData = new byte[width * height * 4];
 
@@ -427,7 +447,10 @@ namespace JStudio
                         {
                             //Ensure we're not reading past the end of the image.
                             if ((xBlock * 4 + pX >= width) || (yBlock * 4 + pY >= height))
+                            {
+                                stream.SkipUInt16();
                                 continue;
+                            }
 
                             ushort sourcePixel = stream.ReadUInt16();
                             RGB565ToRGBA8(sourcePixel, ref decodedData,
@@ -575,8 +598,8 @@ namespace JStudio
 
         private static byte[] DecodeIA8(EndianBinaryReader stream, uint width, uint height)
         {
-            uint numBlocksW = width / 4; //4 byte block width
-            uint numBlocksH = height / 4; //4 byte block height 
+            uint numBlocksW = (width + 3) / 4; //4 byte block width
+            uint numBlocksH = (height + 3) / 4; //4 byte block height 
 
             byte[] decodedData = new byte[width * height * 4];
 
@@ -591,7 +614,11 @@ namespace JStudio
                         {
                             //Ensure the pixel we're checking is within bounds of the image.
                             if ((xBlock * 4 + pX >= width) || (yBlock * 4 + pY >= height))
+                            {
+                                stream.SkipByte();
+                                stream.SkipByte();
                                 continue;
+                            }
 
                             //Now we're looping through each pixel in a block, but a pixel is four bytes long. 
                             uint destIndex = (uint)(4 * (width * ((yBlock * 4) + pY) + (xBlock * 4) + pX));
@@ -611,14 +638,14 @@ namespace JStudio
 
         private static byte[] DecodeIA4(EndianBinaryReader stream, uint width, uint height)
         {
-            uint numBlocksW = width / 8;
-            uint numBlocksH = height / 4;
+            uint numBlocksW = (width + 7) / 8;
+            uint numBlocksH = (height + 3) / 4;
 
             byte[] decodedData = new byte[width * height * 4];
 
-            for (int yBlock = 0; yBlock < height; yBlock++)
+            for (int yBlock = 0; yBlock < numBlocksH; yBlock++)
             {
-                for (int xBlock = 0; xBlock < width; xBlock++)
+                for (int xBlock = 0; xBlock < numBlocksW; xBlock++)
                 {
                     //For each block, we're going to examine block width / block height number of 'pixels'
                     for (int pY = 0; pY < 4; pY++)
@@ -627,8 +654,10 @@ namespace JStudio
                         {
                             //Ensure the pixel we're checking is within bounds of the image.
                             if ((xBlock * 8 + pX >= width) || (yBlock * 4 + pY >= height))
+                            {
+                                stream.SkipByte();
                                 continue;
-
+                            }
 
                             byte value = stream.ReadByte();
 
@@ -651,8 +680,8 @@ namespace JStudio
 
         private static byte[] DecodeI4(EndianBinaryReader stream, uint width, uint height)
         {
-            uint numBlocksW = width / 8; //8 byte block width
-            uint numBlocksH = height / 8; //8 byte block height 
+            uint numBlocksW = (width + 7) / 8; //8 byte block width
+            uint numBlocksH = (height + 7) / 8; //8 byte block height 
 
             byte[] decodedData = new byte[width * height * 4];
 
@@ -667,7 +696,10 @@ namespace JStudio
                         {
                             //Ensure the pixel we're checking is within bounds of the image.
                             if ((xBlock * 8 + pX >= width) || (yBlock * 8 + pY >= height))
+                            {
+                                stream.SkipByte();
                                 continue;
+                            }
 
                             byte data = stream.ReadByte();
                             byte t = (byte)((data & 0xF0) >> 4);
@@ -677,12 +709,12 @@ namespace JStudio
                             decodedData[destIndex + 0] = (byte)(t * 0x11);
                             decodedData[destIndex + 1] = (byte)(t * 0x11);
                             decodedData[destIndex + 2] = (byte)(t * 0x11);
-                            decodedData[destIndex + 3] = (byte)(t * 0x11);
+                            decodedData[destIndex + 3] = 0xff;
 
                             decodedData[destIndex + 4] = (byte)(t2 * 0x11);
                             decodedData[destIndex + 5] = (byte)(t2 * 0x11);
                             decodedData[destIndex + 6] = (byte)(t2 * 0x11);
-                            decodedData[destIndex + 7] = (byte)(t2 * 0x11);
+                            decodedData[destIndex + 7] = 0xff;
                         }
                     }
                 }
@@ -693,8 +725,8 @@ namespace JStudio
 
         private static byte[] DecodeI8(EndianBinaryReader stream, uint width, uint height)
         {
-            uint numBlocksW = width / 8; //8 pixel block width
-            uint numBlocksH = height / 4; //4 pixel block height 
+            uint numBlocksW = (width + 7) / 8; //8 pixel block width
+            uint numBlocksH = (height + 3) / 4; //4 pixel block height 
 
             byte[] decodedData = new byte[width * height * 4];
 
@@ -709,7 +741,10 @@ namespace JStudio
                         {
                             //Ensure the pixel we're checking is within bounds of the image.
                             if ((xBlock * 8 + pX >= width) || (yBlock * 4 + pY >= height))
+                            {
+                                stream.SkipByte();
                                 continue;
+                            }
 
                             byte data = stream.ReadByte();
                             uint destIndex = (uint)(4 * (width * ((yBlock * 4) + pY) + (xBlock * 8) + pX));
@@ -717,7 +752,7 @@ namespace JStudio
                             decodedData[destIndex + 0] = data;
                             decodedData[destIndex + 1] = data;
                             decodedData[destIndex + 2] = data;
-                            decodedData[destIndex + 3] = data;
+                            decodedData[destIndex + 3] = 0xff;
                         }
                     }
                 }
@@ -728,8 +763,8 @@ namespace JStudio
 
         private static byte[] DecodeRgb5A3(EndianBinaryReader stream, uint width, uint height)
         {
-            uint numBlocksW = width / 4; //4 byte block width
-            uint numBlocksH = height / 4; //4 byte block height 
+            uint numBlocksW = (width + 3) / 4; //4 byte block width
+            uint numBlocksH = (height + 3) / 4; //4 byte block height 
 
             byte[] decodedData = new byte[width * height * 4];
 
@@ -744,7 +779,10 @@ namespace JStudio
                         {
                             //Ensure the pixel we're checking is within bounds of the image.
                             if ((xBlock * 4 + pX >= width) || (yBlock * 4 + pY >= height))
+                            {
+                                stream.SkipUInt16();
                                 continue;
+                            }
 
                             ushort sourcePixel = stream.ReadUInt16();
                             RGB5A3ToRGBA8(sourcePixel, ref decodedData,
