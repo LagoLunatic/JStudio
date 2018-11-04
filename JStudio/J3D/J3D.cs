@@ -965,10 +965,14 @@ namespace JStudio.J3D
 
                 boneTransforms[i] = cumulativeTransform;
                 Vector3 curPos = cumulativeTransform.ExtractTranslation();
-                Quaternion curRot = cumulativeTransform.ExtractRotation();
 
                 WLinearColor jointColor = origJoint.Unknown1 == 0 ? WLinearColor.Yellow : WLinearColor.Blue;
-                lineDrawer.DrawLine(lastPos, curPos, jointColor, 0f, 0f);
+                if (origJoint.Parent != null)
+                {
+                    int parentIndex = JNT1Tag.AnimatedJoints.IndexOf(origJoint.Parent);
+                    Vector3 parentPos = boneTransforms[parentIndex].ExtractTranslation();
+                    lineDrawer.DrawLine(parentPos, curPos, jointColor, 0f, 0f);
+                }
                 lineDrawer.DrawSphere(curPos, 1f, 5, jointColor, 0f, 0f);
                 lastPos = curPos;
             }
