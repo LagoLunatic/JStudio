@@ -885,10 +885,10 @@ namespace JStudio.J3D
             Matrix4[] boneTransforms = new Matrix4[boneList.Count];
             ApplyBonePositionsToAnimationTransforms(boneList, boneTransforms);
 
-            for (int i = 0; i < boneTransforms.Length; i++)
+            for (int i = 0; i < JNT1Tag.AnimatedJoints.Count; i++)
             {
                 SkeletonJoint curJoint, origJoint;
-                curJoint = origJoint = JNT1Tag.BindJoints[i];
+                curJoint = origJoint = JNT1Tag.AnimatedJoints[i];
 
                 Matrix4 cumulativeTransform = Matrix4.Identity;
                 while (true)
