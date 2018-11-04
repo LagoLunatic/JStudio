@@ -890,21 +890,20 @@ namespace JStudio.J3D
                 SkeletonJoint curJoint, origJoint;
                 curJoint = origJoint = JNT1Tag.BindJoints[i];
 
-                //Matrix4 cumulativeTransform = Matrix4.Identity;
-                //while (true)
-                //{
-                //    Matrix4 jointMatrix = Matrix4.CreateScale(curJoint.Scale) * Matrix4.CreateFromQuaternion(curJoint.Rotation) * Matrix4.CreateTranslation(curJoint.Translation);
-                //    cumulativeTransform *= jointMatrix;
-                //    if (curJoint.Parent == null)
-                //        break;
+                Matrix4 cumulativeTransform = Matrix4.Identity;
+                while (true)
+                {
+                    Matrix4 jointMatrix = Matrix4.CreateScale(curJoint.Scale) * Matrix4.CreateFromQuaternion(curJoint.Rotation) * Matrix4.CreateTranslation(curJoint.Translation);
+                    cumulativeTransform *= jointMatrix;
+                    if (curJoint.Parent == null)
+                        break;
 
-                //    curJoint = curJoint.Parent;
-                //}
+                    curJoint = curJoint.Parent;
+                }
 
-                //boneTransforms[i] = cumulativeTransform;
-                boneTransforms[i].Transpose();
-                Vector3 curPos = boneTransforms[i].ExtractTranslation();
-                Quaternion curRot = boneTransforms[i].ExtractRotation();
+                boneTransforms[i] = cumulativeTransform;
+                Vector3 curPos = cumulativeTransform.ExtractTranslation();
+                Quaternion curRot = cumulativeTransform.ExtractRotation();
 
                 WLinearColor jointColor = origJoint.Unknown1 == 0 ? WLinearColor.Yellow : WLinearColor.Blue;
                 if (boundingSphere)
