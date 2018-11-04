@@ -121,12 +121,12 @@ namespace JStudio.OpenGL
             {
                 case GXBlendModeControl.Zero: return BlendingFactorSrc.Zero;
                 case GXBlendModeControl.One: return BlendingFactorSrc.One;
-                case GXBlendModeControl.SrcColor: return BlendingFactorSrc.SrcColor;
-                case GXBlendModeControl.InverseSrcColor: return BlendingFactorSrc.OneMinusSrcColor;
-                case GXBlendModeControl.SrcAlpha: return BlendingFactorSrc.SrcAlpha;
-                case GXBlendModeControl.InverseSrcAlpha: return BlendingFactorSrc.OneMinusSrcAlpha;
-                case GXBlendModeControl.DstAlpha: return BlendingFactorSrc.DstAlpha;
-                case GXBlendModeControl.InverseDstAlpha: return BlendingFactorSrc.OneMinusDstAlpha;
+                case GXBlendModeControl.SrcColor: return BlendingFactorSrc.DstColor;
+                case GXBlendModeControl.InverseSrcColor: return BlendingFactorSrc.OneMinusDstColor;
+                case GXBlendModeControl.SrcAlpha: return BlendingFactorSrc.DstAlpha;
+                case GXBlendModeControl.InverseSrcAlpha: return BlendingFactorSrc.OneMinusDstAlpha;
+                case GXBlendModeControl.DstAlpha: return BlendingFactorSrc.SrcAlpha;
+                case GXBlendModeControl.InverseDstAlpha: return BlendingFactorSrc.OneMinusSrcAlpha;
                 default:
                     Console.WriteLine("Unsupported GXBlendModeControl: \"{0}\" in GetOpenGLBlendSrc!", sourceFactor);
                     return BlendingFactorSrc.SrcAlpha;
@@ -140,12 +140,12 @@ namespace JStudio.OpenGL
             {
                 case GXBlendModeControl.Zero: return BlendingFactorDest.Zero;
                 case GXBlendModeControl.One: return BlendingFactorDest.One;
-                case GXBlendModeControl.SrcColor: return BlendingFactorDest.SrcColor;
-                case GXBlendModeControl.InverseSrcColor: return BlendingFactorDest.OneMinusSrcColor;
-                case GXBlendModeControl.SrcAlpha: return BlendingFactorDest.SrcAlpha;
-                case GXBlendModeControl.InverseSrcAlpha: return BlendingFactorDest.OneMinusSrcAlpha;
-                case GXBlendModeControl.DstAlpha: return BlendingFactorDest.DstAlpha;
-                case GXBlendModeControl.InverseDstAlpha: return BlendingFactorDest.OneMinusDstAlpha;
+                case GXBlendModeControl.SrcColor: return BlendingFactorDest.DstColor;
+                case GXBlendModeControl.InverseSrcColor: return BlendingFactorDest.OneMinusDstColor;
+                case GXBlendModeControl.SrcAlpha: return BlendingFactorDest.DstAlpha;
+                case GXBlendModeControl.InverseSrcAlpha: return BlendingFactorDest.OneMinusDstAlpha;
+                case GXBlendModeControl.DstAlpha: return BlendingFactorDest.SrcAlpha;
+                case GXBlendModeControl.InverseDstAlpha: return BlendingFactorDest.OneMinusSrcAlpha;
                 default:
                     Console.WriteLine("Unsupported GXBlendModeControl: \"{0}\" in GetOpenGLBlendDest!", destinationFactor);
                     return BlendingFactorDest.OneMinusSrcAlpha;
