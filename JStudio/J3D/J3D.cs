@@ -970,6 +970,7 @@ namespace JStudio.J3D
 
                 WLinearColor jointColor = origJoint.Unknown1 == 0 ? WLinearColor.Yellow : WLinearColor.Blue;
                 lineDrawer.DrawLine(lastPos, curPos, jointColor, 0f, 0f);
+                lineDrawer.DrawSphere(curPos, 1f, 5, jointColor, 0f, 0f);
                 lastPos = curPos;
             }
         }
