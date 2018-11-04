@@ -945,13 +945,13 @@ namespace JStudio.J3D
 
         public void DrawBones(IDebugLineDrawer lineDrawer)
         {
-            Matrix4[] boneTransforms = new Matrix4[JNT1Tag.BindJoints.Count];
+            Matrix4[] boneTransforms = new Matrix4[JNT1Tag.AnimatedJoints.Count];
             Vector3 lastPos = Vector3.Zero;
 
-            for (int i = 0; i < JNT1Tag.BindJoints.Count; i++)
+            for (int i = 0; i < JNT1Tag.AnimatedJoints.Count; i++)
             {
                 SkeletonJoint curJoint, origJoint;
-                curJoint = origJoint = JNT1Tag.BindJoints[i];
+                curJoint = origJoint = JNT1Tag.AnimatedJoints[i];
 
                 Matrix4 cumulativeTransform = Matrix4.Identity;
                 while (true)
