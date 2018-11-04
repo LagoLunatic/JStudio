@@ -967,6 +967,11 @@ namespace JStudio.J3D
                 Vector3 curPos = cumulativeTransform.ExtractTranslation();
 
                 WLinearColor jointColor = origJoint.Unknown1 == 0 ? WLinearColor.Yellow : WLinearColor.Blue;
+                if (origJoint.Unknown2 != 0)
+                {
+                    jointColor = WLinearColor.Red;
+                }
+
                 if (origJoint.Parent != null)
                 {
                     int parentIndex = JNT1Tag.AnimatedJoints.IndexOf(origJoint.Parent);
