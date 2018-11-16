@@ -484,13 +484,13 @@ namespace JStudio.J3D
         public GXTexGenSrc Source;
         /// <summary> Texture Matrix Index </summary>
         public GXTexMatrix TexMatrixSource;
-		
-		public TexCoordGen()
-		{
-			Type = GXTexGenType.Matrix3x4;
-			Source = GXTexGenSrc.TexCoord0;
-			TexMatrixSource = GXTexMatrix.TexMtx0;
-		}
+        
+        public TexCoordGen()
+        {
+            Type = GXTexGenType.Matrix3x4;
+            Source = GXTexGenSrc.TexCoord0;
+            TexMatrixSource = GXTexMatrix.TexMtx0;
+        }
     }
 
     public enum TexMatrixProjection
@@ -517,7 +517,7 @@ namespace JStudio.J3D
         {
             get
             {
-				Matrix4 S = Matrix4.CreateScale(ScaleS, ScaleT, 1f);
+                Matrix4 S = Matrix4.CreateScale(ScaleS, ScaleT, 1f);
                 Matrix4 R = Matrix4.CreateRotationX(Rotation);
                 Matrix4 T = Matrix4.CreateTranslation(new Vector3(TranslateS, TranslateT, 0));
 
@@ -532,7 +532,7 @@ namespace JStudio.J3D
 
                 return mat;
                 //return GetTextureMatrixOld();
-			}
+            }
         }
 
         private Matrix4 GetTextureMatrixOld()
