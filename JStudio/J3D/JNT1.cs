@@ -10,7 +10,7 @@ namespace JStudio.J3D
     {
         public string Name { get; internal set; }
         public ushort Unknown1 { get; internal set; }
-        public byte Unknown2 { get; internal set; }
+        public bool DoNotInheritParentScale { get; internal set; }
         public Vector3 Scale { get; internal set; }
         public Quaternion Rotation { get; internal set; }
         public Vector3 Translation { get; internal set; }
@@ -68,7 +68,7 @@ namespace JStudio.J3D
 
                 joint.Name = nameTable[j];
                 joint.Unknown1 = reader.ReadUInt16();
-                joint.Unknown2 = reader.ReadByte();
+                joint.DoNotInheritParentScale = reader.ReadByte() == 1;
                 Trace.Assert(reader.ReadByte() == 0xFF); // Padding
                 joint.Scale = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
 

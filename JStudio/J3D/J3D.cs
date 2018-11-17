@@ -655,13 +655,18 @@ namespace JStudio.J3D
                 curJoint = origJoint = boneList[i];
 
                 Matrix4 cumulativeTransform = Matrix4.Identity;
+                SkeletonJoint prevJoint = null;
                 while (true)
                 {
-                    Matrix4 jointMatrix = Matrix4.CreateScale(curJoint.Scale) * Matrix4.CreateFromQuaternion(curJoint.Rotation) * Matrix4.CreateTranslation(curJoint.Translation);
+                    Vector3 scale = curJoint.Scale;
+                    if (prevJoint != null && prevJoint.DoNotInheritParentScale)
+                        scale = Vector3.One;
+                    Matrix4 jointMatrix = Matrix4.CreateScale(scale) * Matrix4.CreateFromQuaternion(curJoint.Rotation) * Matrix4.CreateTranslation(curJoint.Translation);
                     cumulativeTransform *= jointMatrix;
                     if (curJoint.Parent == null)
                         break;
 
+                    prevJoint = curJoint;
                     curJoint = curJoint.Parent;
                 }
 
@@ -891,13 +896,18 @@ namespace JStudio.J3D
                 curJoint = origJoint = JNT1Tag.AnimatedJoints[i];
 
                 Matrix4 cumulativeTransform = Matrix4.Identity;
+                SkeletonJoint prevJoint = null;
                 while (true)
                 {
-                    Matrix4 jointMatrix = Matrix4.CreateScale(curJoint.Scale) * Matrix4.CreateFromQuaternion(curJoint.Rotation) * Matrix4.CreateTranslation(curJoint.Translation);
+                    Vector3 scale = curJoint.Scale;
+                    if (prevJoint != null && prevJoint.DoNotInheritParentScale)
+                        scale = Vector3.One;
+                    Matrix4 jointMatrix = Matrix4.CreateScale(scale) * Matrix4.CreateFromQuaternion(curJoint.Rotation) * Matrix4.CreateTranslation(curJoint.Translation);
                     cumulativeTransform *= jointMatrix;
                     if (curJoint.Parent == null)
                         break;
 
+                    prevJoint = curJoint;
                     curJoint = curJoint.Parent;
                 }
 
@@ -953,13 +963,18 @@ namespace JStudio.J3D
                 curJoint = origJoint = JNT1Tag.AnimatedJoints[i];
 
                 Matrix4 cumulativeTransform = Matrix4.Identity;
+                SkeletonJoint prevJoint = null;
                 while (true)
                 {
-                    Matrix4 jointMatrix = Matrix4.CreateScale(curJoint.Scale) * Matrix4.CreateFromQuaternion(curJoint.Rotation) * Matrix4.CreateTranslation(curJoint.Translation);
+                    Vector3 scale = curJoint.Scale;
+                    if (prevJoint != null && prevJoint.DoNotInheritParentScale)
+                        scale = Vector3.One;
+                    Matrix4 jointMatrix = Matrix4.CreateScale(scale) * Matrix4.CreateFromQuaternion(curJoint.Rotation) * Matrix4.CreateTranslation(curJoint.Translation);
                     cumulativeTransform *= jointMatrix;
                     if (curJoint.Parent == null)
                         break;
 
+                    prevJoint = curJoint;
                     curJoint = curJoint.Parent;
                 }
 
@@ -967,7 +982,7 @@ namespace JStudio.J3D
                 Vector3 curPos = cumulativeTransform.ExtractTranslation();
 
                 WLinearColor jointColor = origJoint.Unknown1 == 0 ? WLinearColor.Yellow : WLinearColor.Blue;
-                if (origJoint.Unknown2 != 0)
+                if (origJoint.DoNotInheritParentScale)
                 {
                     jointColor = WLinearColor.Red;
                 }
