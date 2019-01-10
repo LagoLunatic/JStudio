@@ -890,10 +890,10 @@ namespace JStudio.J3D
             Matrix4[] boneTransforms = new Matrix4[boneList.Count];
             ApplyBonePositionsToAnimationTransforms(boneList, boneTransforms);
 
-            for (int i = 0; i < JNT1Tag.AnimatedJoints.Count; i++)
+            for (int i = 0; i < boneList.Count; i++)
             {
                 SkeletonJoint curJoint, origJoint;
-                curJoint = origJoint = JNT1Tag.AnimatedJoints[i];
+                curJoint = origJoint = boneList[i];
 
                 Matrix4 cumulativeTransform = Matrix4.Identity;
                 SkeletonJoint prevJoint = null;
@@ -954,13 +954,15 @@ namespace JStudio.J3D
 
         public void DrawBones(IDebugLineDrawer lineDrawer)
         {
-            Matrix4[] boneTransforms = new Matrix4[JNT1Tag.AnimatedJoints.Count];
+            IList<SkeletonJoint> boneList = (m_currentBoneAnimation != null) ? JNT1Tag.AnimatedJoints : JNT1Tag.BindJoints;
+
+            Matrix4[] boneTransforms = new Matrix4[boneList.Count];
             Vector3 lastPos = Vector3.Zero;
 
-            for (int i = 0; i < JNT1Tag.AnimatedJoints.Count; i++)
+            for (int i = 0; i < boneList.Count; i++)
             {
                 SkeletonJoint curJoint, origJoint;
-                curJoint = origJoint = JNT1Tag.AnimatedJoints[i];
+                curJoint = origJoint = boneList[i];
 
                 Matrix4 cumulativeTransform = Matrix4.Identity;
                 SkeletonJoint prevJoint = null;
@@ -989,7 +991,7 @@ namespace JStudio.J3D
 
                 if (origJoint.Parent != null)
                 {
-                    int parentIndex = JNT1Tag.AnimatedJoints.IndexOf(origJoint.Parent);
+                    int parentIndex = boneList.IndexOf(origJoint.Parent);
                     Vector3 parentPos = boneTransforms[parentIndex].ExtractTranslation();
                     lineDrawer.DrawLine(parentPos, curPos, jointColor, 0f, 0f);
                 }
